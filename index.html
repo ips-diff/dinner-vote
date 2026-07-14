@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>회식 날짜 투표</title>
+<link rel="preconnect" href="https://rsms.me/">
+<link href="https://rsms.me/inter/inter.css" rel="stylesheet">
+<style>
+  :root {
+    --font: 'Inter', system-ui, -apple-system, sans-serif;
+    --zinc-50: #fafafa;
+    --zinc-100: #f4f4f5;
+    --zinc-200: #e4e4e7;
+    --zinc-300: #d4d4d8;
+    --zinc-400: #a1a1aa;
+    --zinc-500: #71717a;
+    --zinc-600: #52525b;
+    --zinc-700: #3f3f46;
+    --zinc-800: #27272a;
+    --zinc-900: #18181b;
+    --emerald-50: #ecfdf5;
+    --emerald-100: #d1fae5;
+    --emerald-500: #10b981;
+    --emerald-600: #059669;
+    --emerald-700: #047857;
+    --red-50: #fef2f2;
+    --red-500: #ef4444;
+    --red-600: #dc2626;
+    --amber-50: #fffbeb;
+    --amber-500: #f59e0b;
+    --amber-600: #d97706;
+    --radius: 8px;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: var(--font);
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--zinc-800);
+    background: var(--zinc-50);
+    min-height: 100dvh;
+    -webkit-font-smoothing: antialiased;
+  }
+  .container { max-width: 720px; margin: 0 auto; padding: 32px 16px 64px; }
+  @media (min-width: 640px) { .container { padding: 48px 24px 80px; } }
+  .page-header { margin-bottom: 32px; }
+  .page-title { font-size: 1.5rem; font-weight: 600; letter-spacing: -0.025em; color: var(--zinc-900); line-height: 1.3; }
+  @media (min-width: 640px) { .page-title { font-size: 1.75rem; } }
+  .page-subtitle { font-size: 0.875rem; color: var(--zinc-500); margin-top: 4px; }
+  .section { margin-bottom: 32px; }
+  .section-label { font-size: 0.8125rem; font-weight: 600; color: var(--zinc-500); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px; }
+  .input-row { display: flex; gap: 8px; }
+  input[type="text"], input[type="date"] { flex: 1; height: 40px; padding: 0 12px; font-family: var(--font); font-size: 0.875rem; color: var(--zinc-800); background: #fff; border: none; border-radius: var(--radius); outline: none; box-shadow: 0 0 0 1px rgba(0,0,0,0.08); transition: box-shadow 0.15s; }
+  input[type="text"]:focus, input[type="date"]:focus { box-shadow: 0 0 0 2px var(--emerald-500); }
+  input[type="text"]::placeholder { color: var(--zinc-400); }
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 40px; padding: 0 16px; font-family: var(--font); font-size: 0.875rem; font-weight: 500; border: none; border-radius: var(--radius); cursor: pointer; white-space: nowrap; transition: background 0.12s, opacity 0.12s; user-select: none; }
+  .btn:active { transform: scale(0.97); }
+  .btn:focus-visible { outline: 2px solid var(--emerald-500); outline-offset: 2px; }
+  .btn-primary { background: var(--emerald-600); color: #fff; }
+  .btn-primary:hover { background: var(--emerald-700); }
+  .btn-secondary { background: var(--zinc-100); color: var(--zinc-700); }
+  .btn-secondary:hover { background: var(--zinc-200); }
+  .btn-danger { background: transparent; color: var(--zinc-400); padding: 0 8px; }
+  .btn-danger:hover { color: var(--red-500); }
+  .btn-sm { height: 32px; padding: 0 10px; font-size: 0.8125rem; }
+  .date-list { list-style: none; display: flex; flex-direction: column; gap: 2px; }
+  .date-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border-radius: 6px; font-size: 0.875rem; background: #fff; box-shadow: 0 0 0 1px rgba(0,0,0,0.05); }
+  .date-item-label { font-variant-numeric: tabular-nums; color: var(--zinc-700); }
+  .voter-info { display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: var(--emerald-50); border-radius: var(--radius); font-size: 0.875rem; color: var(--emerald-700); margin-bottom: 16px; }
+  .voter-info svg { flex-shrink: 0; width: 16px; height: 16px; }
+  .voter-name-display { font-weight: 600; }
+  .voter-change { margin-left: auto; font-size: 0.8125rem; color: var(--emerald-600); cursor: pointer; background: none; border: none; font-family: var(--font); text-decoration: underline; text-underline-offset: 2px; }
+  .voter-change:hover { color: var(--emerald-700); }
+  .vote-grid { display: flex; flex-direction: column; gap: 6px; }
+  .vote-row { display: flex; align-items: center; gap: 8px; padding: 10px 12px; background: #fff; border-radius: var(--radius); box-shadow: 0 0 0 1px rgba(0,0,0,0.05); cursor: pointer; transition: box-shadow 0.12s; user-select: none; }
+  .vote-row:hover { box-shadow: 0 0 0 1px rgba(0,0,0,0.12); }
+  .vote-row.selected { box-shadow: 0 0 0 2px var(--emerald-500); background: var(--emerald-50); }
+  .vote-checkbox { display: flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 4px; flex-shrink: 0; background: var(--zinc-100); transition: background 0.12s; }
+  .vote-row.selected .vote-checkbox { background: var(--emerald-600); }
+  .vote-checkbox svg { width: 14px; height: 14px; color: #fff; opacity: 0; transition: opacity 0.12s; }
+  .vote-row.selected .vote-checkbox svg { opacity: 1; }
+  .vote-date-label { font-size: 0.875rem; font-variant-numeric: tabular-nums; color: var(--zinc-700); flex: 1; }
+  .vote-count { font-size: 0.8125rem; font-variant-numeric: tabular-nums; color: var(--zinc-400); min-width: 24px; text-align: right; }
+  .result-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+  .result-table th { text-align: left; font-weight: 500; color: var(--zinc-500); padding: 8px 12px; white-space: nowrap; border-bottom: 1px solid rgba(0,0,0,0.08); }
+  .result-table td { padding: 8px 12px; color: var(--zinc-700); border-bottom: 1px solid rgba(0,0,0,0.04); font-variant-numeric: tabular-nums; }
+  .result-table tr:last-child td { border-bottom: none; }
+  .result-bar-cell { width: 100%; }
+  .result-bar-wrap { display: flex; align-items: center; gap: 8px; }
+  .result-bar-track { flex: 1; height: 6px; background: var(--zinc-100); border-radius: 3px; overflow: hidden; }
+  .result-bar-fill { height: 100%; background: var(--emerald-500); border-radius: 3px; transition: width 0.3s ease; }
+  .result-bar-value { font-size: 0.8125rem; font-weight: 600; color: var(--zinc-800); min-width: 20px; text-align: right; font-variant-numeric: tabular-nums; }
+  .result-winner { background: var(--emerald-50); }
+  .result-winner td:first-child::before { content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--emerald-500); margin-right: 8px; vertical-align: middle; }
+  .voter-detail-toggle { font-size: 0.8125rem; color: var(--zinc-500); cursor: pointer; background: none; border: none; font-family: var(--font); padding: 4px 0; text-decoration: underline; text-underline-offset: 2px; }
+  .voter-detail-toggle:hover { color: var(--zinc-700); }
+  .voter-detail-list { display: none; margin-top: 8px; padding: 12px 16px; background: var(--zinc-50); border-radius: 6px; }
+  .voter-detail-list.open { display: block; }
+  .voter-detail-item { display: flex; align-items: center; gap: 8px; padding: 4px 0; font-size: 0.8125rem; color: var(--zinc-600); }
+  .voter-detail-item + .voter-detail-item { border-top: 1px solid rgba(0,0,0,0.04); }
+  .voter-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--emerald-500); flex-shrink: 0; }
+  .actions-bar { display: flex; gap: 8px; margin-top: 24px; flex-wrap: wrap; }
+  .empty-state { padding: 32px 16px; text-align: center; color: var(--zinc-400); font-size: 0.875rem; }
+  .dialog-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 100; align-items: center; justify-content: center; }
+  .dialog-overlay.open { display: flex; }
+  .dialog { background: #fff; border-radius: 12px; padding: 24px; max-width: 360px; width: calc(100% - 32px); box-shadow: 0 20px 60px rgba(0,0,0,0.15); }
+  .dialog-title { font-size: 1rem; font-weight: 600; color: var(--zinc-900); margin-bottom: 8px; }
+  .dialog-body { font-size: 0.875rem; color: var(--zinc-600); margin-bottom: 20px; line-height: 1.5; }
+  .dialog-actions { display: flex; gap: 8px; justify-content: flex-end; }
+  .view-tabs { display: flex; gap: 2px; background: var(--zinc-100); border-radius: var(--radius); padding: 3px; margin-bottom: 24px; }
+  .view-tab { flex: 1; height: 34px; display: flex; align-items: center; justify-content: center; gap: 6px; font-family: var(--font); font-size: 0.8125rem; font-weight: 500; color: var(--zinc-500); background: transparent; border: none; border-radius: 6px; cursor: pointer; transition: background 0.12s, color 0.12s; }
+  .view-tab:hover { color: var(--zinc-700); }
+  .view-tab.active { background: #fff; color: var(--zinc-800); box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+  .view-tab svg { width: 14px; height: 14px; }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+  .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px); padding: 10px 20px; background: var(--zinc-800); color: #fff; font-size: 0.875rem; border-radius: var(--radius); opacity: 0; transition: opacity 0.2s, transform 0.2s; pointer-events: none; z-index: 200; }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition-duration: 0.01ms !important; } }
+</style>
+</head>
+<body>
+<div class="container">
+  <header class="page-header">
+    <h1 class="page-title">회식 날짜 투표</h1>
+    <p class="page-subtitle">날짜 후보를 추가하고 팀원들이 투표해 보세요</p>
+  </header>
+  <div class="view-tabs" role="tablist">
+    <button class="view-tab active" role="tab" aria-selected="true" data-tab="setup" id="tab-setup">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 3.5v9M3.5 8h9"/></svg>
+      설정
+    </button>
+    <button class="view-tab" role="tab" aria-selected="false" data-tab="vote" id="tab-vote">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3.5 8.5l3 3 6-7"/></svg>
+      투표
+    </button>
+    <button class="view-tab" role="tab" aria-selected="false" data-tab="results" id="tab-results">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="9" width="3" height="5" rx="0.5"/><rect x="6.5" y="5" width="3" height="9" rx="0.5"/><rect x="11" y="2" width="3" height="12" rx="0.5"/></svg>
+      결과
+    </button>
+  </div>
+  <div class="tab-panel active" id="panel-setup" role="tabpanel" aria-labelledby="tab-setup">
+    <div class="section">
+      <label class="section-label" for="date-input">날짜 후보 추가</label>
+      <div class="input-row">
+        <input type="date" id="date-input" aria-label="날짜 선택">
+        <button class="btn btn-primary" id="add-date-btn" type="button">추가</button>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-label">등록된 날짜 (<span id="date-count">0</span>개)</div>
+      <ul class="date-list" id="date-list" role="list">
+        <li class="empty-state" id="date-empty">아직 추가된 날짜가 없습니다</li>
+      </ul>
+    </div>
+  </div>
+  <div class="tab-panel" id="panel-vote" role="tabpanel" aria-labelledby="tab-vote">
+    <div class="section" id="voter-input-section">
+      <label class="section-label" for="voter-name-input">투표자 이름</label>
+      <div class="input-row">
+        <input type="text" id="voter-name-input" placeholder="이름을 입력하세요" maxlength="20">
+        <button class="btn btn-primary" id="set-voter-btn" type="button">확인</button>
+      </div>
+    </div>
+    <div id="voter-set-section" style="display:none;">
+      <div class="voter-info">
+        <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 8a3 3 0 100-6 3 3 0 000 6zm-5 6a5 5 0 0110 0H3z"/></svg>
+        <span>투표자: <span class="voter-name-display" id="voter-display"></span></span>
+        <button class="voter-change" id="change-voter-btn" type="button">변경</button>
+      </div>
+      <div class="section">
+        <div class="section-label">참석 가능한 날짜를 선택하세요</div>
+        <div class="vote-grid" id="vote-grid" role="group" aria-label="투표할 날짜 목록"></div>
+        <div class="actions-bar">
+          <button class="btn btn-primary" id="submit-vote-btn" type="button">투표하기</button>
+        </div>
+      </div>
+    </div>
+    <div class="empty-state" id="vote-empty" style="display:none;">먼저 설정 탭에서 날짜 후보를 추가해 주세요</div>
+  </div>
+  <div class="tab-panel" id="panel-results" role="tabpanel" aria-labelledby="tab-results">
+    <div id="results-content">
+      <div class="section">
+        <div class="section-label">투표 현황</div>
+        <div class="table-scroll">
+          <table class="result-table" id="result-table">
+            <thead><tr><th>날짜</th><th class="result-bar-cell">득표</th></tr></thead>
+            <tbody id="result-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="section">
+        <div class="section-label">투표자 상세</div>
+        <div id="voter-details-area"></div>
+      </div>
+      <div class="actions-bar">
+        <button class="btn btn-secondary btn-sm" id="export-btn" type="button">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" style="width:14px;height:14px"><path d="M2.5 11v2.5h11V11M8 2v8.5M5 7.5L8 10.5l3-3"/></svg>
+          내보내기
+        </button>
+        <button class="btn btn-danger btn-sm" id="reset-btn" type="button">전체 초기화</button>
+      </div>
+    </div>
+    <div class="empty-state" id="results-empty" style="display:none;">아직 투표 데이터가 없습니다</div>
+  </div>
+</div>
+<div class="dialog-overlay" id="confirm-dialog">
+  <div class="dialog" role="alertdialog" aria-labelledby="dialog-title" aria-describedby="dialog-body">
+    <div class="dialog-title" id="dialog-title">전체 초기화</div>
+    <div class="dialog-body" id="dialog-body">모든 날짜 후보와 투표 기록이 삭제됩니다. 이 작업은 되돌릴 수 없습니다.</div>
+    <div class="dialog-actions">
+      <button class="btn btn-secondary btn-sm" id="dialog-cancel" type="button">취소</button>
+      <button class="btn btn-primary btn-sm" id="dialog-confirm" type="button" style="background:var(--red-600);">초기화</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script>
+(function(){
+  "use strict";
+  var firebaseConfig={
+    apiKey:"AIzaSyARnDnkBSp2TJVrf2xp8g7LuZEI28A0AJw",
+    authDomain:"team-dinner-vote-diff.firebaseapp.com",
+    databaseURL:"https://team-dinner-vote-diff-default-rtdb.firebaseio.com",
+    projectId:"team-dinner-vote-diff",
+    storageBucket:"team-dinner-vote-diff.firebasestorage.app",
+    messagingSenderId:"948911484054",
+    appId:"1:948911484054:web:905b27b56a000ef57de6b7",
+    measurementId:"G-C83TLKLBNX"
+  };
+  firebase.initializeApp(firebaseConfig);
+  var db=firebase.database();
+  var dataRef=db.ref("team-dinner-vote");
+  var state={dates:[],votes:{}};
+  var currentVoter="";
+  var selectedDates=new Set();
+  function toArray(val){
+    if(!val)return[];
+    if(Array.isArray(val))return val;
+    if(typeof val==="object")return Object.values(val);
+    return[];
+  }
+  function parseVotes(raw){
+    if(!raw||typeof raw!=="object")return{};
+    var result={};
+    Object.keys(raw).forEach(function(voter){result[voter]=toArray(raw[voter]);});
+    return result;
+  }
+  dataRef.on("value",function(snapshot){
+    var data=snapshot.val();
+    state=data?{dates:toArray(data.dates),votes:parseVotes(data.votes)}:{dates:[],votes:{}};
+    if(currentVoter&&state.votes[currentVoter]){selectedDates=new Set(state.votes[currentVoter]);}
+    renderDateList();
+    var activeTab=document.querySelector(".view-tab.active");
+    if(activeTab){
+      if(activeTab.dataset.tab==="vote")renderVotePanel();
+      if(activeTab.dataset.tab==="results")renderResults();
+    }
+  });
+  function saveData(){dataRef.set(state);}
+  var $=function(s){return document.querySelector(s);};
+  var $$=function(s){return document.querySelectorAll(s);};
+  var dateInput=$("#date-input");
+  var addDateBtn=$("#add-date-btn");
+  var dateList=$("#date-list");
+  var dateCount=$("#date-count");
+  var dateEmpty=$("#date-empty");
+  var voterNameInput=$("#voter-name-input");
+  var setVoterBtn=$("#set-voter-btn");
+  var voterInputSection=$("#voter-input-section");
+  var voterSetSection=$("#voter-set-section");
+  var voterDisplay=$("#voter-display");
+  var changeVoterBtn=$("#change-voter-btn");
+  var voteGrid=$("#vote-grid");
+  var submitVoteBtn=$("#submit-vote-btn");
+  var voteEmpty=$("#vote-empty");
+  var resultTbody=$("#result-tbody");
+  var voterDetailsArea=$("#voter-details-area");
+  var resultsContent=$("#results-content");
+  var resultsEmpty=$("#results-empty");
+  var exportBtn=$("#export-btn");
+  var resetBtn=$("#reset-btn");
+  var confirmDialog=$("#confirm-dialog");
+  var dialogCancel=$("#dialog-cancel");
+  var dialogConfirm=$("#dialog-confirm");
+  var toast=$("#toast");
+  var DAY_NAMES=["일","월","화","수","목","금","토"];
+  function formatDate(dateStr){
+    var d=new Date(dateStr+"T00:00:00");
+    var m=d.getMonth()+1;
+    var day=d.getDate();
+    var dow=DAY_NAMES[d.getDay()];
+    return{display:m+"월 "+day+"일 ("+dow+")",dow:dow};
+  }
+  function showToast(msg){
+    toast.textContent=msg;
+    toast.classList.add("show");
+    clearTimeout(toast._timer);
+    toast._timer=setTimeout(function(){toast.classList.remove("show");},3000);
+  }
+  $$(".view-tab").forEach(function(tab){
+    tab.addEventListener("click",function(){
+      $$(".view-tab").forEach(function(t){t.classList.remove("active");t.setAttribute("aria-selected","false");});
+      tab.classList.add("active");
+      tab.setAttribute("aria-selected","true");
+      $$(".tab-panel").forEach(function(p){p.classList.remove("active");});
+      $("#panel-"+tab.dataset.tab).classList.add("active");
+      if(tab.dataset.tab==="vote")renderVotePanel();
+      if(tab.dataset.tab==="results")renderResults();
+    });
+  });
+  function renderDateList(){
+    var sorted=state.dates.slice().sort();
+    dateCount.textContent=sorted.length;
+    if(sorted.length===0){
+      dateEmpty.style.display="";
+      dateList.innerHTML="";
+      dateList.appendChild(dateEmpty);
+      return;
+    }
+    dateEmpty.style.display="none";
+    dateList.innerHTML="";
+    sorted.forEach(function(dateStr){
+      var info=formatDate(dateStr);
+      var li=document.createElement("li");
+      li.className="date-item";
+      li.innerHTML='<span class="date-item-label">'+info.display+"</span>"+'<button class="btn btn-danger btn-sm" type="button" data-remove="'+dateStr+'" aria-label="'+info.display+' 삭제">'+'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" style="width:14px;height:14px"><path d="M4 4l8 8M12 4l-8 8"/></svg>'+"</button>";
+      dateList.appendChild(li);
+    });
+  }
+  addDateBtn.addEventListener("click",function(){
+    var val=dateInput.value;
+    if(!val){dateInput.focus();return;}
+    if(state.dates.indexOf(val)!==-1){showToast("이미 추가된 날짜입니다");return;}
+    state.dates.push(val);
+    saveData();
+    dateInput.value="";
+    showToast("날짜가 추가되었습니다");
+  });
+  dateInput.addEventListener("keydown",function(e){if(e.key==="Enter")addDateBtn.click();});
+  dateList.addEventListener("click",function(e){
+    var btn=e.target.closest("[data-remove]");
+    if(!btn)return;
+    var dateStr=btn.dataset.remove;
+    state.dates=state.dates.filter(function(d){return d!==dateStr;});
+    Object.keys(state.votes).forEach(function(voter){
+      state.votes[voter]=state.votes[voter].filter(function(d){return d!==dateStr;});
+      if(state.votes[voter].length===0)delete state.votes[voter];
+    });
+    saveData();
+    showToast("날짜가 삭제되었습니다");
+  });
+  function renderVotePanel(){
+    if(state.dates.length===0){voterInputSection.style.display="none";voterSetSection.style.display="none";voteEmpty.style.display="";return;}
+    voteEmpty.style.display="none";
+    if(!currentVoter){voterInputSection.style.display="";voterSetSection.style.display="none";}
+    else{voterInputSection.style.display="none";voterSetSection.style.display="";voterDisplay.textContent=currentVoter;renderVoteGrid();}
+  }
+  setVoterBtn.addEventListener("click",function(){
+    var name=voterNameInput.value.trim();
+    if(!name){voterNameInput.focus();return;}
+    currentVoter=name;
+    selectedDates=new Set(state.votes[currentVoter]||[]);
+    renderVotePanel();
+  });
+  voterNameInput.addEventListener("keydown",function(e){if(e.key==="Enter")setVoterBtn.click();});
+  changeVoterBtn.addEventListener("click",function(){currentVoter="";selectedDates.clear();voterNameInput.value="";renderVotePanel();});
+  function renderVoteGrid(){
+    var sorted=state.dates.slice().sort();
+    voteGrid.innerHTML="";
+    sorted.forEach(function(dateStr){
+      var info=formatDate(dateStr);
+      var isSelected=selectedDates.has(dateStr);
+      var totalVotes=Object.values(state.votes).filter(function(v){return v.indexOf(dateStr)!==-1;}).length;
+      var row=document.createElement("div");
+      row.className="vote-row"+(isSelected?" selected":"");
+      row.dataset.date=dateStr;
+      row.setAttribute("role","checkbox");
+      row.setAttribute("aria-checked",isSelected?"true":"false");
+      row.setAttribute("aria-label",info.display);
+      row.tabIndex=0;
+      row.innerHTML='<div class="vote-checkbox"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 7l3 3 5-6"/></svg></div><span class="vote-date-label">'+info.display+'</span><span class="vote-count">'+totalVotes+"표</span>";
+      row.addEventListener("click",function(){toggleVote(dateStr);});
+      row.addEventListener("keydown",function(e){if(e.key===" "||e.key==="Enter"){e.preventDefault();toggleVote(dateStr);}});
+      voteGrid.appendChild(row);
+    });
+  }
+  function toggleVote(dateStr){
+    if(selectedDates.has(dateStr)){selectedDates.delete(dateStr);}else{selectedDates.add(dateStr);}
+    renderVoteGrid();
+  }
+  submitVoteBtn.addEventListener("click",function(){
+    if(selectedDates.size===0){showToast("최소 1개 이상의 날짜를 선택해 주세요");return;}
+    state.votes[currentVoter]=Array.from(selectedDates);
+    saveData();
+    showToast(currentVoter+"님의 투표가 저장되었습니다");
+  });
+  function renderResults(){
+    var hasVotes=Object.keys(state.votes).length>0;
+    if(!hasVotes&&state.dates.length===0){resultsContent.style.display="none";resultsEmpty.style.display="";return;}
+    resultsContent.style.display="";
+    resultsEmpty.style.display="none";
+    var sorted=state.dates.slice().sort();
+    var voteCounts={};
+    sorted.forEach(function(d){voteCounts[d]=0;});
+    Object.values(state.votes).forEach(function(dates){dates.forEach(function(d){if(voteCounts[d]!==undefined)voteCounts[d]++;});});
+    var counts=Object.values(voteCounts);
+    var maxVotes=Math.max.apply(null,counts.concat([1]));
+    var topCount=Math.max.apply(null,counts.concat([0]));
+    resultTbody.innerHTML="";
+    sorted.forEach(function(dateStr){
+      var info=formatDate(dateStr);
+      var count=voteCounts[dateStr]||0;
+      var pct=maxVotes>0?(count/maxVotes)*100:0;
+      var isWinner=count===topCount&&topCount>0;
+      var tr=document.createElement("tr");
+      if(isWinner)tr.className="result-winner";
+      tr.innerHTML='<td style="white-space:nowrap">'+info.display+'</td><td class="result-bar-cell"><div class="result-bar-wrap"><div class="result-bar-track"><div class="result-bar-fill" style="width:'+pct+'%"></div></div><span class="result-bar-value">'+count+"</span></div></td>";
+      resultTbody.appendChild(tr);
+    });
+    voterDetailsArea.innerHTML="";
+    var voters=Object.keys(state.votes);
+    if(voters.length===0){voterDetailsArea.innerHTML='<div class="empty-state">아직 투표한 사람이 없습니다</div>';return;}
+    voters.sort().forEach(function(voter){
+      var dates=state.votes[voter];
+      var wrapper=document.createElement("div");
+      wrapper.style.marginBottom="8px";
+      var toggleBtn=document.createElement("button");
+      toggleBtn.className="voter-detail-toggle";
+      toggleBtn.textContent=voter+" ("+dates.length+"개 선택)";
+      var list=document.createElement("div");
+      list.className="voter-detail-list";
+      dates.slice().sort().forEach(function(dateStr){
+        var info=formatDate(dateStr);
+        var item=document.createElement("div");
+        item.className="voter-detail-item";
+        item.innerHTML='<span class="voter-dot"></span><span>'+info.display+"</span>";
+        list.appendChild(item);
+      });
+      toggleBtn.addEventListener("click",function(){list.classList.toggle("open");});
+      wrapper.appendChild(toggleBtn);
+      wrapper.appendChild(list);
+      voterDetailsArea.appendChild(wrapper);
+    });
+  }
+  exportBtn.addEventListener("click",function(){
+    var sorted=state.dates.slice().sort();
+    var voters=Object.keys(state.votes).sort();
+    var text="회식 날짜 투표 결과\n==============================\n\n[ 날짜별 득표 ]\n";
+    sorted.forEach(function(dateStr){
+      var info=formatDate(dateStr);
+      var count=Object.values(state.votes).filter(function(v){return v.indexOf(dateStr)!==-1;}).length;
+      text+="  "+info.display+": "+count+"표\n";
+    });
+    text+="\n[ 투표자별 선택 ]\n";
+    voters.forEach(function(voter){
+      var dates=state.votes[voter].slice().sort().map(function(d){return formatDate(d).display;});
+      text+="  "+voter+": "+dates.join(", ")+"\n";
+    });
+    text+="\n[ 총 투표자 수: "+voters.length+"명 ]\n";
+    if(navigator.clipboard){navigator.clipboard.writeText(text).then(function(){showToast("클립보드에 복사되었습니다");}).catch(function(){downloadText(text);});}
+    else{downloadText(text);}
+  });
+  function downloadText(text){
+    var blob=new Blob([text],{type:"text/plain;charset=utf-8"});
+    var url=URL.createObjectURL(blob);
+    var a=document.createElement("a");
+    a.href=url;a.download="회식투표결과.txt";a.click();
+    URL.revokeObjectURL(url);
+    showToast("파일이 다운로드되었습니다");
+  }
+  resetBtn.addEventListener("click",function(){confirmDialog.classList.add("open");});
+  dialogCancel.addEventListener("click",function(){confirmDialog.classList.remove("open");});
+  confirmDialog.addEventListener("click",function(e){if(e.target===confirmDialog)confirmDialog.classList.remove("open");});
+  dialogConfirm.addEventListener("click",function(){
+    state={dates:[],votes:{}};
+    saveData();
+    currentVoter="";
+    selectedDates.clear();
+    confirmDialog.classList.remove("open");
+    showToast("모든 데이터가 초기화되었습니다");
+  });
+  document.addEventListener("keydown",function(e){if(e.key==="Escape"&&confirmDialog.classList.contains("open")){confirmDialog.classList.remove("open");}});
+  var today=new Date();
+  var yyyy=today.getFullYear();
+  var mm=String(today.getMonth()+1).padStart(2,"0");
+  var dd=String(today.getDate()).padStart(2,"0");
+  dateInput.value=yyyy+"-"+mm+"-"+dd;
+})();
+</script>
+</body>
+</html>
